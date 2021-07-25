@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
@@ -25,6 +25,8 @@ const passwordReducer = (state, action) => {
 };
 
 const Login = (props) => {
+  const [formIsValid, setFormIsValid] = useState(false);
+
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: "",
     isValid: null,
@@ -34,6 +36,23 @@ const Login = (props) => {
     value: "",
     isValid: null,
   });
+
+  //we are destructuring isValid with an alias value
+  //we are doing this to run useEffect only when the validity changes (when isValid changes)
+  const { isValid: emailIsValid } = emailState;
+  const { isValid: passwordIsValid } = passwordState;
+
+  useEffect(() => {
+    //debounce
+    const identifier = setTimeout(() => {
+      setFormIsValid(emailIsValid && passwordIsValid);
+    }, 500);
+
+    //clean up function
+    return () => {
+      clearTimeout(identifier);
+    };
+  }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
     dispatchEmail({ type: "USER_INPUT", value: event.target.value });
@@ -89,7 +108,7 @@ const Login = (props) => {
           />
         </div>
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!emailState.isValid || !passwordState.isValid}>
+          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
             Login
           </Button>
         </div>
